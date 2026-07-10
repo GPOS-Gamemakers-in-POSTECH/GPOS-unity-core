@@ -8,12 +8,11 @@ namespace GPOS.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void InitializeAutoSingletons()
         {
-            var registries = Resources.FindObjectsOfTypeAll<SingletonRegistry>();
-            var registry = registries.Length > 0 ? registries[0] : null;
+            SingletonRegistry registry = FindRegistry();
 
             if (registry == null)
             {
-                D.LogError("[AutoSingleton] Registry not found in Preloaded Assets. Please generate it via 'Tools/Auto Singleton/Generate Prefabs (Registry)'.");
+                D.LogError("[AutoSingleton] Registry not found. Please generate it via 'G-POS/Auto Singleton/Generate Prefabs (Registry)'.");
                 return;
             }
 
@@ -22,6 +21,24 @@ namespace GPOS.Core
                 if (prefab == null) continue;
                 CreateSingletonInstance(prefab);
             }
+        }
+
+        private static SingletonRegistry FindRegistry()
+        {
+#if UNITY_EDITOR
+            // Preloaded Assets 는 빌드에서만 자동 로드되므로, 에디터 플레이 모드에서는
+            // 메모리에 없을 수 있어 AssetDatabase 로 직접 찾습니다.
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:SingletonRegistry");
+            if (guids.Length > 0)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<SingletonRegistry>(path);
+            }
+            return null;
+#else
+            var registries = Resources.FindObjectsOfTypeAll<SingletonRegistry>();
+            return registries.Length > 0 ? registries[0] : null;
+#endif
         }
 
         private static void CreateSingletonInstance(GameObject prefab)

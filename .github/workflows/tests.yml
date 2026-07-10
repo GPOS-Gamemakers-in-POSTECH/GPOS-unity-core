@@ -1,0 +1,48 @@
+# 커밋 push / PR 마다 유니티 테스트를 자동 실행합니다. (GameCI 사용)
+#
+# 최초 1회 설정 필요 — 저장소 Settings > Secrets and variables > Actions 에 아래 시크릿 등록:
+#   UNITY_LICENSE : Unity Personal 라이선스 파일(.ulf) 내용
+#   UNITY_EMAIL   : Unity 계정 이메일
+#   UNITY_PASSWORD: Unity 계정 비밀번호
+# 라이선스 파일 발급 방법: https://game.ci/docs/github/activation
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Run EditMode tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}
+          restore-keys: Library-
+
+      - name: Run tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          # 저장소 루트가 UPM 패키지이므로 packageMode 로 실행합니다.
+          packageMode: true
+          projectPath: .
+          unityVersion: 6000.3.0f1
+          testMode: editmode
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Test results
+          path: artifacts

@@ -10,18 +10,22 @@ namespace GPOS.Core.Editor
     {
         private const string AUTO_GEN_PREF_KEY = "GPOS_AutoSingleton_Enabled";
 
-        [MenuItem("Tools/Auto Singleton/Enable Auto Generation")]
-        private static void ToggleAutoGeneration()
+        private const string AutoGenMenuPath = GPOSMenu.Root + "Auto Singleton/Enable Auto Generation";
+
+        public static bool IsAutoGenerationEnabled => EditorPrefs.GetBool(AUTO_GEN_PREF_KEY, true);
+
+        [MenuItem(AutoGenMenuPath, priority = GPOSMenu.SingletonPriority + 1)]
+        public static void ToggleAutoGeneration()
         {
             bool isEnabled = EditorPrefs.GetBool(AUTO_GEN_PREF_KEY, true);
             EditorPrefs.SetBool(AUTO_GEN_PREF_KEY, !isEnabled);
             D.Log($"[AutoSingleton] Auto Generation is now {(!isEnabled ? "Enabled" : "Disabled")}");
         }
 
-        [MenuItem("Tools/Auto Singleton/Enable Auto Generation", true)]
+        [MenuItem(AutoGenMenuPath, true)]
         private static bool ToggleAutoGenerationValidate()
         {
-            Menu.SetChecked("Tools/Auto Singleton/Enable Auto Generation", EditorPrefs.GetBool(AUTO_GEN_PREF_KEY, true));
+            Menu.SetChecked(AutoGenMenuPath, EditorPrefs.GetBool(AUTO_GEN_PREF_KEY, true));
             return true;
         }
 
@@ -34,7 +38,7 @@ namespace GPOS.Core.Editor
             }
         }
 
-        [MenuItem("Tools/Auto Singleton/Generate Prefabs (Registry)")]
+        [MenuItem(GPOSMenu.Root + "Auto Singleton/Generate Prefabs (Registry)", priority = GPOSMenu.SingletonPriority)]
         public static void GeneratePrefabsAndRegistry()
         {
             if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
@@ -55,11 +59,11 @@ namespace GPOS.Core.Editor
                 D.Log($"[Generator] Created Registry: {regPath}");
             }
 
+            var previousPrefabs = registry.prefabs.ToList();
             registry.prefabs.Clear();
-            bool isDirty = false;
 
             var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
+                .SelectMany(GetTypesSafe)
                 .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(MonoBehaviour)) && Attribute.IsDefined(t, typeof(AutoSingletonAttribute)));
 
             foreach (var type in types)
@@ -86,14 +90,15 @@ namespace GPOS.Core.Editor
                     continue;
                 }
 
-                if (prefab != null && !registry.prefabs.Contains(prefab))
+                // 게임 시작 시 자동 생성은 LoadOnStart 인 것만. (프리팹 자체는 위에서 이미 생성됨)
+                if (prefab != null && attr.LoadOnStart && !registry.prefabs.Contains(prefab))
                 {
                     registry.prefabs.Add(prefab);
-                    isDirty = true;
                 }
             }
 
-            if (isDirty)
+            // 항목이 추가된 경우뿐 아니라 제거된 경우(어트리뷰트 삭제 등)에도 저장해야 합니다.
+            if (!registry.prefabs.SequenceEqual(previousPrefabs))
             {
                 EditorUtility.SetDirty(registry);
                 AssetDatabase.SaveAssets();
@@ -101,6 +106,19 @@ namespace GPOS.Core.Editor
             }
 
             AddToPreloadedAssets(registry);
+        }
+
+        private static Type[] GetTypesSafe(System.Reflection.Assembly assembly)
+        {
+            // 로드에 실패한 어셈블리는 GetTypes 가 예외를 던지므로, 로드된 타입만 사용합니다.
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (System.Reflection.ReflectionTypeLoadException e)
+            {
+                return e.Types.Where(t => t != null).ToArray();
+            }
         }
 
         private static void AddToPreloadedAssets(SingletonRegistry registry)

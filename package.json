@@ -1,10 +1,18 @@
 {
   "name": "com.gpos.core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "GPOS Unity Core",
   "description": "Common framework and utility package for G-POS team projects.",
   "unity": "6000.3",
   "unityRelease": "0f1",
+  "license": "MIT",
+  "samples": [
+    {
+      "displayName": "Core Examples",
+      "description": "싱글톤, FSM, 커맨드, 오브젝트 풀, 이벤트 버스 사용 예제",
+      "path": "Samples~/CoreExamples"
+    }
+  ],
   "author": {
     "name": "G-POS",
     "email": "gpos.postech@gmail.com"

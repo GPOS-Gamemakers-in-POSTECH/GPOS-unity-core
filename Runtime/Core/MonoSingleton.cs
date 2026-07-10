@@ -10,6 +10,16 @@ namespace GPOS.Core
         private static bool _applicationIsQuitting = false;
         public static bool HasInstance => _instance != null;
 
+        // 도메인 리로드가 꺼진 환경에서도 플레이 시작마다 static 상태를 초기화합니다.
+        static MonoSingleton()
+        {
+            SingletonPlayModeReset.Register(() =>
+            {
+                _instance = null;
+                _applicationIsQuitting = false;
+            });
+        }
+
         public static T Instance
         {
             get
@@ -92,9 +102,11 @@ namespace GPOS.Core
 
         protected virtual void OnDestroy()
         {
+            // 씬 전환이나 수동 파괴로도 호출되므로 여기서 종료 플래그를 켜면 안 됩니다.
+            // (종료 판정은 OnApplicationQuit 담당) 참조만 정리해 재생성이 가능하게 둡니다.
             if (_instance == this)
             {
-                _applicationIsQuitting = true;
+                _instance = null;
             }
         }
     }
