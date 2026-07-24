@@ -24,23 +24,23 @@ namespace GPOS.Core
         {
             get
             {
-                if (_applicationIsQuitting)
-                {
-                    D.LogWarning($"[MonoSingleton] {typeof(T)} instance is null because application is quitting.");
-                    return null;
-                }
-
                 lock (_lock)
                 {
+                    if (_instance != null)
+                        return _instance;
+
+                    if (_applicationIsQuitting)
+                    {
+                        D.LogWarning($"[MonoSingleton] {typeof(T)} instance is not created because application is quitting.");
+                        return null;
+                    }
+
+                    _instance = (T)FindFirstObjectByType(typeof(T));
                     if (_instance == null)
                     {
-                        _instance = (T)FindFirstObjectByType(typeof(T));
-                        if (_instance == null)
-                        {
-                            GameObject singletonObject = new();
-                            _instance = singletonObject.AddComponent<T>();
-                            singletonObject.name = $"{typeof(T)} (Singleton)";
-                        }
+                        GameObject singletonObject = new();
+                        _instance = singletonObject.AddComponent<T>();
+                        singletonObject.name = $"{typeof(T)} (Singleton)";
                     }
                     return _instance;
                 }
