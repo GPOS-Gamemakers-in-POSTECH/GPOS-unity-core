@@ -15,7 +15,8 @@ namespace GPOS.Core.Editor
     /// 1) notion.so/my-integrations 에서 Internal Integration 을 만들고 Secret 을 복사합니다.
     /// 2) 가져올 Notion DB 의 우측 상단 ... > Connections 에서 해당 Integration 을 연결합니다.
     ///    (이 단계를 빠뜨리면 토큰이 맞아도 404 가 돌아옵니다.)
-    /// 3) 목록에 왼쪽=저장할 파일 이름, 오른쪽=DB URL 끝의 32자리 Database ID 를 넣습니다.
+    /// 3) 목록에 왼쪽=저장할 파일 이름, 오른쪽=DB 주소를 넣습니다.
+    ///    주소를 통째로 붙여넣으면 32자리 Database ID 만 자동으로 남습니다.
     ///
     /// 목록과 출력 폴더는 <see cref="NotionImportProfile"/> 을 통해 ProjectSettings 에 저장되어 팀과 공유되고,
     /// 토큰은 EditorPrefs 에 이 PC + 이 프로젝트 단위로만 저장됩니다.
@@ -73,6 +74,7 @@ namespace GPOS.Core.Editor
             EditorGUILayout.LabelField("Notion → JSON Import", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "목록의 왼쪽 칸은 저장할 파일 이름, 오른쪽 칸은 Notion Database ID 입니다. " +
+                "오른쪽 칸에는 DB 주소를 통째로 붙여넣으면 ID 만 자동으로 뽑아냅니다. " +
                 "Fetch 하면 '출력 폴더/이름.json' 으로 저장됩니다.\n" +
                 "사용 전 notion.so/my-integrations 에서 Integration 을 만들고, 대상 DB 의 '... > Connections' 에 " +
                 "연결해야 합니다. 연결하지 않으면 토큰이 맞아도 404 가 돌아옵니다.\n" +
@@ -107,7 +109,7 @@ namespace GPOS.Core.Editor
                 EditorGUILayout.LabelField(
                     "저장할 파일 이름", EditorStyles.miniBoldLabel, GUILayout.Width(NameColumnWidth));
                 EditorGUILayout.LabelField(
-                    "Notion Database ID (DB URL 끝 32자리)", EditorStyles.miniBoldLabel);
+                    "Notion Database ID (URL 붙여넣으면 자동 추출)", EditorStyles.miniBoldLabel);
                 GUILayout.Space(FetchButtonWidth + RemoveButtonWidth + 10f);
                 EditorGUILayout.EndHorizontal();
             }
@@ -121,8 +123,11 @@ namespace GPOS.Core.Editor
                 entry.Name = EditorGUILayout.TextField(entry.Name, GUILayout.Width(NameColumnWidth));
                 DrawPlaceholder(entry.Name, "예: QuestTable");
 
-                entry.DatabaseId = EditorGUILayout.TextField(entry.DatabaseId);
-                DrawPlaceholder(entry.DatabaseId, "예: 1a2b3c4d5e6f7890abcdef1234567890");
+                // URL 을 통째로 붙여넣어도 ID 만 남깁니다. 못 뽑아내면 입력한 값을 그대로 둡니다.
+                string typedId = EditorGUILayout.TextField(entry.DatabaseId);
+                if (typedId != entry.DatabaseId)
+                    entry.DatabaseId = ExtractDatabaseId(typedId) ?? typedId;
+                DrawPlaceholder(entry.DatabaseId, "DB URL 을 그대로 붙여넣으세요");
 
                 using (new EditorGUI.DisabledScope(!CanFetch(entry)))
                 {
@@ -363,5 +368,41 @@ namespace GPOS.Core.Editor
 
         /// <summary>제어 문자이거나 <see cref="InvalidNameChars"/> 에 속하는지 확인합니다.</summary>
         private static bool IsInvalidNameChar(char c) => c < ' ' || InvalidNameChars.IndexOf(c) >= 0;
+
+        /// <summary>
+        /// 붙여넣은 값에서 Database ID(32자리 hex)를 뽑아냅니다. URL 전체를 넣어도 되고 ID 만 넣어도 됩니다.
+        /// 제목 슬러그에도 '-' 가 들어가므로(예: Quest-Table-a8ae...) 대시를 지운 뒤 '끝에서' 32자를 취합니다.
+        /// 뽑아내지 못하면 null 을 돌려주고, 호출부는 입력을 그대로 둡니다.
+        /// </summary>
+        internal static string ExtractDatabaseId(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return null;
+
+            string text = input.Trim();
+
+            // 쿼리(?v=..., &pvs=...)와 프래그먼트(#...) 제거
+            int cut = text.IndexOfAny(new[] { '?', '#' });
+            if (cut >= 0)
+                text = text.Substring(0, cut);
+
+            // 경로의 마지막 조각만 사용 (제목 슬러그 + ID 형태)
+            text = text.TrimEnd('/');
+            int slash = text.LastIndexOf('/');
+            if (slash >= 0)
+                text = text.Substring(slash + 1);
+
+            text = text.Replace("-", "");
+            if (text.Length < 32)
+                return null;
+
+            string id = text.Substring(text.Length - 32);
+            foreach (char c in id)
+            {
+                if (!Uri.IsHexDigit(c))
+                    return null;
+            }
+            return id;
+        }
     }
 }

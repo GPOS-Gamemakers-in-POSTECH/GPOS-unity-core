@@ -2,6 +2,12 @@
 
 이 패키지의 주요 변경 사항을 기록합니다. [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따릅니다.
 
+## [1.2.1] - 2026-07-25
+
+### Added
+
+- **Import JSON from Notion** : Database ID 칸에 DB 주소를 통째로 붙여넣으면 32자리 ID 만 자동으로 추출. 쿼리(`?v=...`)·프래그먼트·제목 슬러그·대시 UUID 를 모두 처리하며, 추출에 실패하면 입력값을 그대로 남겨 사용자가 확인할 수 있게 함
+
 ## [1.2.0] - 2026-07-25
 
 ### Added

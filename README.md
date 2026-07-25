@@ -50,7 +50,7 @@ G-POS 동아리 팀원들이 공통으로 사용하는 유니티 코어 패키�
 - **Settings** : `G-POS > Settings` — GPOS Core 프로젝트 설정 바로가기.
 - **외부 패키지 설치** : Tool Hub 의 "외부 패키지" 섹션 — NuGetForUnity, R3, UniTask 등 팀 추천 패키지를 버튼 한 번으로 설치 (UPM 은 Git URL 의존성을 지원하지 않아 Package Manager API 로 프로젝트 manifest 에 추가하는 방식).
 
-> Import JSON from Notion 사용 전: [notion.so/my-integrations](https://www.notion.so/my-integrations) 에서 Internal Integration 을 만들고, 대상 DB 의 `... > Connections` 에 연결한 뒤 토큰과 32자리 ID 를 입력하세요. Connections 연결을 빠뜨리면 토큰이 맞아도 404 가 돌아옵니다.
+> Import JSON from Notion 사용 전: [notion.so/my-integrations](https://www.notion.so/my-integrations) 에서 Internal Integration 을 만들고, 대상 DB 의 `... > Connections` 에 연결한 뒤 토큰을 입력하세요. Database ID 칸에는 **DB 주소를 그대로 붙여넣으면 ID 만 자동으로 추출**됩니다. Connections 연결을 빠뜨리면 토큰이 맞아도 404 가 돌아옵니다.
 
 ## 사용법 (Usage)
 
@@ -265,7 +265,7 @@ D.LogWarning("경고");
 
 - **Tool Hub** (`G-POS > Tool Hub`) : 아래 툴 전부 한 창에서 실행. 도킹해두고 사용하세요.
 - **AI Export** : Root 경로 지정 → Export → `scripts_export.md` / `prefabs_export.md` 생성. "패키지 포함" 을 켜면 직접 추가한 패키지도 선택해 포함. 생성된 md 를 LLM 에 붙여넣어 질문하는 용도.
-- **Import JSON from Notion** : Integration 생성 → 대상 DB 에 Connections 연결 → 토큰 입력 → `+ 추가` 로 이름과 32자리 Database ID 등록 → 항목별 `Fetch` 또는 `Fetch All` → `출력 폴더/이름.json` 저장. 이름이 곧 파일 이름이므로 목록 안에서 겹치면 안 되고, 출력 폴더는 `Assets/` 아래여야 합니다.
+- **Import JSON from Notion** : Integration 생성 → 대상 DB 에 Connections 연결 → 토큰 입력 → `+ 추가` 로 이름과 DB 주소 등록(주소를 붙여넣으면 32자리 ID 만 남습니다) → 항목별 `Fetch` 또는 `Fetch All` → `출력 폴더/이름.json` 저장. 이름이 곧 파일 이름이므로 목록 안에서 겹치면 안 되고, 출력 폴더는 `Assets/` 아래여야 합니다.
 
 ### 외부 패키지 설치 (R3, UniTask 등)
 
@@ -281,6 +281,7 @@ Tool Hub 의 **외부 패키지** 섹션에서 버튼 한 번으로 설치할 �
 
 ## 버전 업데이트 내역
 
+- 1.2.1 : Database ID 칸에 DB 주소를 붙여넣으면 32자리 ID 자동 추출
 - 1.2.0 : Notion Import 를 Import JSON from Notion 으로 개편 (DB 목록 등록, 일괄 Fetch, ProjectSettings 공유). `NotionApiClient` 의 미사용 API 4개 제거
 - 1.1.0 : 디자인 패턴(FSM, Command, Factory, ObjectPool), EventBus, 자료구조(PriorityQueue, SerializableDictionary), AI Export / Notion Import / 외부 패키지 설치 에디터 툴 추가
 - 1.0.0 : 초기 패키지 구조 셋업 완료

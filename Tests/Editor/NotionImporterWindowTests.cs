@@ -122,5 +122,74 @@ namespace GPOS.Core.Tests
             // 호출부는 이 결과를 보고 해당 항목을 건너뜁니다. ('.json' 같은 파일이 생기지 않도록)
             Assert.AreEqual(string.Empty, NotionImporterWindow.Sanitize(input));
         }
+
+        // --- ExtractDatabaseId -------------------------------------------------------
+
+        private const string Id = "a8aec43384f447ed84390e8e42c2e089";
+
+        [Test]
+        public void ID_만_넣으면_그대로_돌려준다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId(Id));
+        }
+
+        [Test]
+        public void 대시가_들어간_UUID_도_받는다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId("a8aec433-84f4-47ed-8439-0e8e42c2e089"));
+        }
+
+        [Test]
+        public void URL_의_쿼리를_잘라낸다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId(
+                "https://www.notion.so/" + Id + "?v=b5f8c5b7f4a44a1e9e0b9f8c5b7f4a44&pvs=4"));
+        }
+
+        [Test]
+        public void 제목_슬러그가_붙어_있어도_ID_만_뽑는다()
+        {
+            // 슬러그에도 '-' 가 있으므로 단순히 대시만 지우면 제목이 앞에 붙습니다.
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId(
+                "https://www.notion.so/myteam/Quest-Table-" + Id + "?v=abc"));
+        }
+
+        [Test]
+        public void 제목_슬러그와_대시_UUID_가_함께_있어도_ID_만_뽑는다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId(
+                "https://www.notion.so/myteam/Quest-Table-a8aec433-84f4-47ed-8439-0e8e42c2e089?v=abc"));
+        }
+
+        [Test]
+        public void 프래그먼트와_끝_슬래시를_처리한다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId(
+                "https://www.notion.so/" + Id + "/#block"));
+        }
+
+        [Test]
+        public void 앞뒤_공백을_허용한다()
+        {
+            Assert.AreEqual(Id, NotionImporterWindow.ExtractDatabaseId("  " + Id + "  "));
+        }
+
+        [TestCase((string)null)]
+        [TestCase("")]
+        [TestCase("   ")]
+        [TestCase("https://www.notion.so/myworkspace")]
+        [TestCase("Quest-Table")]
+        [TestCase("a8aec43384f447ed84390e8e42c2e08")]
+        public void 뽑아낼_수_없으면_null_을_돌려준다(string input)
+        {
+            // 호출부는 null 을 받으면 사용자가 입력한 값을 그대로 남겨둡니다.
+            Assert.IsNull(NotionImporterWindow.ExtractDatabaseId(input));
+        }
+
+        [Test]
+        public void hex_가_아닌_32자는_거부한다()
+        {
+            Assert.IsNull(NotionImporterWindow.ExtractDatabaseId("z8aec43384f447ed84390e8e42c2e089"));
+        }
     }
 }
