@@ -2,6 +2,37 @@
 
 이 패키지의 주요 변경 사항을 기록합니다. [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따릅니다.
 
+## [1.2.0] - 2026-07-25
+
+### Added
+
+- **Import JSON from Notion** : 이름 + Database ID 목록 등록, 항목별 `Fetch` / 일괄 `Fetch All` 지원
+- `NotionImportProfile` : 가져오기 목록과 출력 폴더를 `ProjectSettings/GPOSNotionImportProfile.asset` 에 저장해 팀과 공유
+- **Import JSON from Notion** : 긴 요청 동안 진행 상황 프로그레스 바 표시
+- **Import JSON from Notion** : 목록에 열 제목("저장할 파일 이름" / "Notion Database ID")과 빈 칸 안내 문구 추가
+- 유닛 테스트 (`Tests/Editor/NotionImporterWindowTests`) : 출력 폴더 검증, 파일 이름 정리 규칙
+
+### Changed
+
+- **Notion Import** → **Import JSON from Notion** 으로 메뉴 이름 변경 (`G-POS > Import JSON from Notion`)
+- **Import JSON from Notion** : 토큰을 EditorPrefs 에 저장하되, 키에 프로젝트 GUID 를 붙여 프로젝트별로 분리 (EditorPrefs 는 머신 전역 저장소)
+- **Import JSON from Notion** : Notion-Version 입력 필드 제거, `2022-06-28` 로 고정
+- **Import JSON from Notion** : 출력 폴더를 `Assets/` 아래로 제한
+- `Tests/Editor` 어셈블리가 `GPOS.Core.Editor` 를 참조하도록 변경 (에디터 툴 로직 테스트용, `InternalsVisibleTo`)
+
+### Removed
+
+- **Import JSON from Notion** : Page 소스 옵션 제거 (DB 가져오기 전용)
+- `NotionApiClient` : 사용처가 없던 `QueryDatabase`, `RetrieveDatabase`, `RetrievePage`, `RetrieveBlockChildren` 제거
+
+### Fixed
+
+- **Import JSON from Notion** : 스크롤뷰 안에서 통신/저장 예외가 나면 `Mismatched LayoutGroup` 이 반복되던 문제 수정 (레이아웃이 끝난 뒤 실행하도록 변경)
+- **Import JSON from Notion** : 출력 폴더가 비어 있거나 `/` 이면 예외가 나거나 드라이브 루트에 파일을 쓰던 문제 수정
+- **Import JSON from Notion** : `Fetch All` 이 항목마다 `AssetDatabase.Refresh()` 를 호출하던 문제 수정 (전부 끝난 뒤 한 번만 호출)
+- **Import JSON from Notion** : 공백뿐인 이름이 `.json` 파일로 저장되던 문제, 이름이 겹치는 항목이 조용히 덮어쓰던 문제 수정
+- **Import JSON from Notion** : 파일 이름 정리에 `Path.GetInvalidFileNameChars()` 를 쓰던 문제 수정. 유닉스에서는 `/` 와 `\0` 만 걸러내 맥에서 만든 이름이 윈도우 팀원에게서 깨질 수 있어, 윈도우 기준 고정 집합으로 교체
+
 ## [1.1.0] - 2026-07-10
 
 ### Added

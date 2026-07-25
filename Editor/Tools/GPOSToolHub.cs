@@ -41,9 +41,9 @@ namespace GPOS.Core.Editor
                     AIExportWindow.Open();
             });
 
-            DrawSection("Notion 연동", "Notion 데이터베이스/페이지를 JSON 으로 가져옵니다.", () =>
+            DrawSection("Notion 연동", "Notion 데이터베이스를 JSON 으로 가져옵니다.", () =>
             {
-                if (GUILayout.Button("Notion Import 열기", ButtonHeight))
+                if (GUILayout.Button("Import JSON from Notion 열기", ButtonHeight))
                     NotionImporterWindow.Open();
             });
 

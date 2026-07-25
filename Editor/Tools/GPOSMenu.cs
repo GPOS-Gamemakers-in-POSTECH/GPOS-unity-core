@@ -10,7 +10,7 @@ namespace GPOS.Core.Editor
         public const string Root = "G-POS/";
 
         public const int HubPriority = 0;         // Tool Hub (맨 위)
-        public const int ExportPriority = 20;     // AI Export, Notion Import
+        public const int ExportPriority = 20;     // AI Export, Import JSON from Notion
         public const int SingletonPriority = 40;  // Auto Singleton 그룹
         public const int SettingsPriority = 100;  // Settings (맨 아래)
     }

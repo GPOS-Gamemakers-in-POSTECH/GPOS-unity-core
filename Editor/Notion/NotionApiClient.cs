@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -26,12 +25,6 @@ namespace GPOS.Core.Editor
             _token = integrationToken;
             _notionVersion = notionVersion;
             _timeoutSeconds = Mathf.Max(1, timeoutSeconds);
-        }
-
-        /// <summary>데이터베이스를 쿼리해 원본 JSON 을 반환합니다. (1페이지, 최대 100건)</summary>
-        public NotionResponse QueryDatabase(string databaseId, string jsonBody = "{}")
-        {
-            return SendRequest("POST", $"/databases/{databaseId}/query", jsonBody);
         }
 
         /// <summary>
@@ -84,24 +77,6 @@ namespace GPOS.Core.Editor
 
             var match = System.Text.RegularExpressions.Regex.Match(json, "\"next_cursor\"\\s*:\\s*\"([^\"]+)\"");
             return match.Success ? match.Groups[1].Value : null;
-        }
-
-        /// <summary>데이터베이스 메타데이터를 조회합니다.</summary>
-        public NotionResponse RetrieveDatabase(string databaseId)
-        {
-            return SendRequest("GET", $"/databases/{databaseId}", null);
-        }
-
-        /// <summary>페이지를 조회합니다.</summary>
-        public NotionResponse RetrievePage(string pageId)
-        {
-            return SendRequest("GET", $"/pages/{pageId}", null);
-        }
-
-        /// <summary>페이지(블록)의 자식 블록들을 조회합니다.</summary>
-        public NotionResponse RetrieveBlockChildren(string blockId)
-        {
-            return SendRequest("GET", $"/blocks/{blockId}/children", null);
         }
 
         private NotionResponse SendRequest(string method, string endpoint, string jsonBody)

@@ -3,6 +3,7 @@
     "rootNamespace": "GPOS.Core.Tests",
     "references": [
         "GPOS.Core",
+        "GPOS.Core.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
